@@ -1,0 +1,23 @@
+services:
+  jupyter:
+    image: jupyter/pyspark-notebook:latest
+    container_name: jupyter
+    env_file:
+      - .env
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+      - PYSPARK_PYTHON=python3
+      - SPARK_MASTER=spark://spark-master:7077
+      - HADOOP_CONF_DIR=/etc/hadoop
+      - DATA_VOLUME=hdfs://hdfs:9000/data
+    ports:
+      - "8888:8888"
+    depends_on:
+      - spark-master
+      - hdfs
+    networks:
+      - data_network
+
+networks:
+  data_network:
+    driver: bridge
