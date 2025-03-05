@@ -1,0 +1,21 @@
+services:
+  hdfs:
+    image: apache/hadoop:latest
+    container_name: hdfs
+    env_file:
+      - .env
+    environment:
+      - HDFS_NAMENODE_USER=root
+      - HDFS_DATANODE_USẺ=root
+      - HDFS_SECONDARYNAMENODE_USER=root
+    ports:
+      - "9870:9870"
+      - "9000:9000"
+    volumes:
+      - ${DATA_VOLUME}:/opt/hadoop/data
+    networks:
+      - data_network
+
+networks:
+  data_network:
+    driver: bridge
