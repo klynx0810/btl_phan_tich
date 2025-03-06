@@ -1,0 +1,93 @@
+version: "3"
+
+services:
+  # HDFS Namenode
+  namenode:
+    image: apache/hadoop:3
+    hostname: namenode
+    command: ["hdfs", "namenode"]
+    ports:
+      - "9870:9870"
+    env_file:
+      - ./config
+    environment:
+      - ENSURE_NAMENODE_DIR=/tmp/hadoop-root/dfs/name
+    networks:
+      - data_network
+
+  # HDFS Datanode
+  datanode:
+    image: apache/hadoop:3
+    command: ["hdfs", "datanode"]
+    networks:
+      - data_network
+    env_file:
+      - ./config
+
+  # Spark Master
+  spark-master:
+    image: bitnami/spark:latest
+    container_name: spark-master
+    env_file:
+      - .env
+    environment:
+      - SPARK_MODE=master
+    ports:
+      - "8080:8080"
+      - "7077:7077"
+    networks:
+      - data_network
+
+  # Spark Worker 1
+  spark-worker-1:
+    image: bitnami/spark:latest
+    container_name: spark-worker-1
+    env_file:
+      - .env
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=${SPARK_MASTER_URL}
+      - SPARK_WORKER_CORES=${SPARK_WORKER_CORES}
+      - SPARK_WORKER_MEMORY=${SPARK_WORKER_MEMORY}
+    depends_on:
+      - spark-master
+    networks:
+      - data_network
+
+  # Spark Worker 2
+  spark-worker-2:
+    image: bitnami/spark:latest
+    container_name: spark-worker-2
+    env_file:
+      - .env
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=${SPARK_MASTER_URL}
+      - SPARK_WORKER_CORES=${SPARK_WORKER_CORES}
+      - SPARK_WORKER_MEMORY=${SPARK_WORKER_MEMORY}
+    depends_on:
+      - spark-master
+    networks:
+      - data_network
+
+  # Jupyter Notebook với PySpark
+  jupyter:
+    image: jupyter/pyspark-notebook
+    container_name: jupyter
+    hostname: jupyter
+    ports:
+      - "8888:8888"
+    environment:
+      - SPARK_MASTER=${SPARK_MASTER_URL}
+      - HADOOP_CONF_DIR=/etc/hadoop
+      - JUPYTER_TOKEN=letrungkien
+    volumes:
+      - ./notebooks:/home/jovyan/work
+    depends_on:
+      - spark-master
+    networks:
+      - data_network
+
+networks:
+  data_network:
+    driver: bridge

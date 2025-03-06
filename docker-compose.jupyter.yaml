@@ -1,0 +1,20 @@
+version: "3"
+services:
+  jupyter:
+    image: jupyter/pyspark-notebook
+    container_name: jupyter
+    hostname: jupyter
+    ports:
+      - "8888:8888"
+    environment:
+      - SPARK_MASTER=spark://spark-master:7077
+      - HADOOP_CONF_DIR=/etc/hadoop
+      - JUPYTER_TOKEN=letrungkien
+    volumes:
+      - ./notebooks:/home/jovyan/work
+    depends_on:
+      - spark-master
+
+networks:
+  data_network:
+    driver: bridge
